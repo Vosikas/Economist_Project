@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic[email]
+bcrypt
+python-dotenv
+
+#Για να τα τρεξεις κανεις στο τερμινλα pip install -r requirements.txt
