@@ -60,3 +60,10 @@ def create_verification_token(email: str):
     encoded.update({"exp":expiring_time})
     encoded_jwt = jwt.encode(encoded,os.getenv("SECRET_KEY" ), algorithm = os.getenv("ALGORITHM"))
     return encoded_jwt
+def create_password_reset_token(email: str):
+    encoded= { "sub" : email}
+    time_now=datetime.now(timezone.utc)
+    expiring_time=time_now + timedelta(minutes=int(os.getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES")))
+    encoded.update({"exp":expiring_time})
+    encoded_jwt = jwt.encode(encoded,os.getenv("SECRET_KEY" ), algorithm = os.getenv("ALGORITHM"))
+    return encoded_jwt

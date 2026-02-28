@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status,BackgroundTasks
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 import os
@@ -6,8 +6,9 @@ import jwt
 
 from db import get_db
 from models import User, RefreshToken
-from schemas import Userlogin, TokenResponse, RefreshReq
-from security import verify_password, create_access_token, create_refresh_token
+from schemas import Userlogin, TokenResponse, RefreshReq,ForgotPasswordRequest,ResetPasswordRequest
+from security import verify_password, create_access_token, create_refresh_token,create_password_reset_token,get_password_hash
+from emails_service import send_reset_password
 
 
 router = APIRouter(tags=["Authentication"])
@@ -75,3 +76,42 @@ def logout(request: RefreshReq, db: Session = Depends(get_db)):
         db.delete(token_in_db)
         db.commit()
     return {"detail": "Logged out successfully"}
+@router.post("/forgot-password" )
+def forgotpassword(request : ForgotPasswordRequest,background_tasks : BackgroundTasks , db : Session = Depends(get_db)):
+    email_in_db=db.query(User).filter(User.email == request.email).first()
+    if email_in_db:
+        token = create_password_reset_token(request.email)
+        background_tasks.add_task(send_reset_password,request.email,token)
+    return {"message": "Αν υπάρχει λογαριασμός με αυτό το email, στάλθηκε σύνδεσμος επαναφοράς."}
+@router.post("/reset-password")
+def resetpassword(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        payload = jwt.decode(request.token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
+        email = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except jwt.ExpiredSignatureError:
+      
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Το token έχει λήξει. Ζητήστε νέο.")
+    except jwt.InvalidTokenError:
+        raise credentials_exception
+        
+    
+    user_in_db = db.query(User).filter(User.email == email).first()
+    
+    
+    if not user_in_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ο χρήστης δεν βρέθηκε.")
+        
+    
+    new_hashed_password = get_password_hash(request.new_password)
+    user_in_db.password_hash = new_hashed_password
+    db.commit()
+    
+    return {"message": "Ο κωδικός πρόσβασης άλλαξε επιτυχώς."}
