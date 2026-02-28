@@ -6,4 +6,8 @@ pydantic[email]
 bcrypt
 python-dotenv
 
+<<<<<<< HEAD
 #Για να τα τρεξεις κανεις στο τερμιναλ pip install -r requirements.txt
+=======
+#Για να τα τρεξεις κανεις στο τερμιναλ pip install -r requirements.txt
+>>>>>>> f0e520c61a36b16cfebcdb613bfb1c541a91bbf6
