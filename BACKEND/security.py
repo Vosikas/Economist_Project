@@ -53,3 +53,10 @@ def get_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db))
     if user is None:
         raise credentials_exception
     return user
+def create_verification_token(email: str):
+    encoded= { "sub" : email}
+    time_now=datetime.now(timezone.utc)
+    expiring_time=time_now + timedelta(hours=int(os.getenv("EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS")))
+    encoded.update({"exp":expiring_time})
+    encoded_jwt = jwt.encode(encoded,os.getenv("SECRET_KEY" ), algorithm = os.getenv("ALGORITHM"))
+    return encoded_jwt

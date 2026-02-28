@@ -9,7 +9,7 @@ from models import User, RefreshToken
 from schemas import Userlogin, TokenResponse, RefreshReq
 from security import verify_password, create_access_token, create_refresh_token
 
-# Ορίζουμε το router για το Authentication
+
 router = APIRouter(tags=["Authentication"])
 
 @router.post("/login", response_model=TokenResponse)
@@ -20,6 +20,9 @@ def login(user: Userlogin, db: Session = Depends(get_db)):
     
     if not verify_password(user.password, user_in_db.password_hash):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password") 
+    
+    if not user_in_db.verified_email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Παρακαλώ επιβεβαιώστε το email σας για να συνδεθείτε.")
     
     access_token = create_access_token(data={"sub": str(user_in_db.id)})
     refresh_token = create_refresh_token(data={"sub": str(user_in_db.id)})

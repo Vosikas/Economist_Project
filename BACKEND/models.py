@@ -13,6 +13,7 @@ class User(Base):
     role = Column(String, default="user")
     is_premium = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    verified_email= Column(Boolean, default=False)
 
 class RefreshToken(Base):
     __tablename__= "refresh_tokens"
