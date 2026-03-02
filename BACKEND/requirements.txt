@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic[email]
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+fastapi-mail
+python-dotenv
+#pip install -r requirements.txt

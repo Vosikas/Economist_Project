@@ -21,7 +21,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=False, 
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"] 
 )
 class RefreshReq(BaseModel):
     refresh_token: str
