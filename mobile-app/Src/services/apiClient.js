@@ -1,7 +1,6 @@
-// src/services/apiClient.js
 import tokenStorage from "./tokenstorage";
 
-const BASE_URL = "http://10.0.2.2:8000"; 
+const BASE_URL = "http://192.168.2.5:8000"; // ΒΑΛΕ ΤΗΝ IP ΣΟΥ ΕΔΩ
 
 const apiFetch = async (endpoint, method = 'GET', body = null) => {
     try {
@@ -24,19 +23,17 @@ const apiFetch = async (endpoint, method = 'GET', body = null) => {
         }
 
         const response = await fetch(`${BASE_URL}${endpoint}`, options);
-        
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || 'Κάτι πήγε στραβά με το API.');
+            throw new Error(data.detail || 'API request failed');
         }
 
-        
         return data;
 
     } catch (error) {
-        console.error('API Error στο apiClient:', error);
-        throw error; 
+        console.error('API Error:', error);
+        throw error;
     }
 };
 

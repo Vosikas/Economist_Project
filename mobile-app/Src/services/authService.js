@@ -2,7 +2,6 @@ import apiFetch from './apiClient';
 import tokenStorage from './tokenstorage';
 
 const authService = {
-    
     signup: async (username, email, password) => {
         return await apiFetch('/signup', 'POST', { 
             username: username, 
@@ -11,9 +10,9 @@ const authService = {
         });
     },
 
-    login: async (email, password) => {
+    login: async (username, password) => {
         const data = await apiFetch('/login', 'POST', { 
-            email: email, 
+            username: username, 
             password: password 
         });
 
