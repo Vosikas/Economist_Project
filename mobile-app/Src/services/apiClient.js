@@ -1,6 +1,6 @@
 import tokenStorage from "./tokenstorage";
 
-const BASE_URL = "http://192.168.2.5:8000"; // ΒΑΛΕ ΤΗΝ IP ΣΟΥ ΕΔΩ
+const BASE_URL = ; // ΒΑΛΕ ΤΗΝ IP ΣΟΥ ΕΔΩ
 
 const apiFetch = async (endpoint, method = 'GET', body = null) => {
     try {
