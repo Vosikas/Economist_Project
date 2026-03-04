@@ -1,6 +1,10 @@
 import tokenStorage from "./tokenstorage";
 
+<<<<<<< HEAD
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+=======
+const BASE_URL = ; // ΒΑΛΕ ΤΗΝ IP ΣΟΥ ΕΔΩ
+>>>>>>> 01bbc8e30fb78950001ed2506a1fa81f2f5cdb52
 
 const apiFetch = async (endpoint, method = 'GET', body = null) => {
     try {
