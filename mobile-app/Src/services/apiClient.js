@@ -1,68 +1,134 @@
-import tokenStorage from "./tokenstorage";
+// src/services/apiClient.js
+import axios from 'axios';
+import tokenStorage from './tokenstorage';
+import useAppStore from '../store/useAppStore';
 
-<<<<<<< HEAD
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-=======
-const BASE_URL = ; // ΒΑΛΕ ΤΗΝ IP ΣΟΥ ΕΔΩ
->>>>>>> 01bbc8e30fb78950001ed2506a1fa81f2f5cdb52
 
-const apiFetch = async (endpoint, method = 'GET', body = null) => {
-    try {
-        const headers = {
-            'Content-Type': 'application/json',
-        };
+// Validate BASE_URL at startup
+if (!BASE_URL) {
+    console.error('❌ [CONFIG] EXPO_PUBLIC_API_URL is undefined! Check your .env file and restart Metro.');
+} else {
+    console.log(`✅ [CONFIG] API Base URL: ${BASE_URL}`);
+}
 
-        const token = await tokenStorage.getToken();
+const safeBaseUrl = BASE_URL ? BASE_URL.replace(/\/$/, '') : '';
+
+const api = axios.create({
+    baseURL: safeBaseUrl,
+    timeout: 15000, // Increased for slower networks
+});
+
+// ─── REQUEST INTERCEPTOR ───────────────────────────────────────────────────
+api.interceptors.request.use(
+    async (config) => {
+        const token = await tokenStorage.getAccessToken();
+        
         if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+            config.headers.Authorization = `Bearer ${token}`;
         }
-
-        const options = {
-            method: method,
-            headers: headers,
-        };
-
-        if (method !== 'GET' && body) {
-            options.body = JSON.stringify(body);
+        
+        // Verbose request logging
+        console.log('────────────────────────────────────────');
+        console.log(`🚀 [REQUEST] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+        console.log(`📦 [REQUEST] Headers:`, JSON.stringify(config.headers, null, 2));
+        if (config.data) {
+            // Redact password for security
+            const safeData = { ...config.data };
+            if (safeData.password) safeData.password = '***REDACTED***';
+            console.log(`📦 [REQUEST] Body:`, JSON.stringify(safeData, null, 2));
         }
-
-        // --- SENIOR FIX: Καθαρισμός του τελικού URL ---
-        // 1. Βγάζουμε την κάθετο από το τέλος του BASE_URL (αν υπάρχει)
-        const safeBaseUrl = BASE_URL ? BASE_URL.replace(/\/$/, '') : '';
-        // 2. Σιγουρευόμαστε ότι το endpoint ξεκινάει με κάθετο
-        const safeEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-        // 3. Τα ενώνουμε με ασφάλεια
-        const finalUrl = `${safeBaseUrl}${safeEndpoint}`;
-
-        // ΤΟ ΡΑΝΤΑΡ ΜΑΣ: Αυτό θα τυπωθεί στο τερματικό του Expo
-        console.log(`🚀 [API FETCH] Στέλνω ${method} request στο:`, finalUrl);
-
-        const response = await fetch(finalUrl, options);
-        const data = await response.json();
-
-       if (!response.ok) {
-            let errorMessage = 'Αποτυχία αιτήματος';
-            
-            if (data.detail) {
-                if (typeof data.detail === 'string') {
-                    errorMessage = data.detail;
-                } 
-                else if (Array.isArray(data.detail)) {
-                    errorMessage = data.detail.map(err => {
-                        const fieldName = err.loc[err.loc.length - 1];
-                        return `Πεδίο "${fieldName}": ${err.msg}`;
-                    }).join('\n');
-                }
-            }
-            throw new Error(errorMessage);
-        }
-
-        return data;
-
-    } catch (error) {
-        console.error('❌ [API Error]:', error);
-        throw error;
+        console.log('────────────────────────────────────────');
+        
+        return config;
+    },
+    (error) => {
+        // This catches errors BEFORE the request is sent (config issues, etc.)
+        console.error('❌ [REQUEST SETUP ERROR] Failed before sending:', error.message);
+        return Promise.reject(error);
     }
-};
+);
 
-export default apiFetch;
+// ─── RESPONSE INTERCEPTOR ──────────────────────────────────────────────────
+api.interceptors.response.use(
+    (response) => {
+        console.log(`✅ [RESPONSE] ${response.status} from ${response.config.url}`);
+        return response;
+    },
+    async (error) => {
+        // Categorize the error type
+        console.log('────────────────────────────────────────');
+        console.error('❌ [RESPONSE ERROR] Request failed');
+        
+        if (error.response) {
+            // Server responded with an error status (4xx, 5xx)
+            console.error(`📡 [SERVER ERROR] Status: ${error.response.status}`);
+            console.error(`📡 [SERVER ERROR] Data:`, JSON.stringify(error.response.data, null, 2));
+            console.error(`📡 [SERVER ERROR] URL: ${error.config?.url}`);
+        } else if (error.request) {
+            // Request was made but no response received
+            console.error('🔌 [NETWORK ERROR] No response received from server');
+            console.error('🔌 [NETWORK ERROR] Possible causes:');
+            console.error('   1. Server is not running');
+            console.error('   2. Wrong IP address in EXPO_PUBLIC_API_URL');
+            console.error('   3. Firewall blocking the connection');
+            console.error('   4. Phone and computer on different networks');
+            console.error(`🔌 [NETWORK ERROR] Attempted URL: ${error.config?.baseURL}${error.config?.url}`);
+            console.error(`🔌 [NETWORK ERROR] Current BASE_URL env: ${BASE_URL}`);
+            
+            if (error.code === 'ECONNABORTED') {
+                console.error('⏱️ [TIMEOUT] Request timed out after', error.config?.timeout, 'ms');
+            }
+        } else {
+            // Error during request setup
+            console.error('⚙️ [SETUP ERROR] Error during request setup:', error.message);
+        }
+        
+        console.error('📋 [FULL ERROR]', error.toJSON ? error.toJSON() : error);
+        console.log('────────────────────────────────────────');
+
+        // ─── 401 Refresh Logic ─────────────────────────────────────────────
+        const originalRequest = error.config;
+        
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            console.log('🔄 [AUTH] Access token expired, attempting refresh...');
+
+            try {
+                const refreshToken = await tokenStorage.getRefreshToken();
+                
+                if (!refreshToken) {
+                    throw new Error('No refresh token available');
+                }
+
+                const response = await axios.post(`${safeBaseUrl}/refresh`, {
+                    refresh_token: refreshToken
+                });
+
+                const { access_token, refresh_token: new_refresh_token } = response.data;
+                console.log('✅ [AUTH] Token refresh successful');
+
+                await tokenStorage.saveTokens(access_token, new_refresh_token);
+                useAppStore.getState().setToken(access_token);
+
+                originalRequest.headers.Authorization = `Bearer ${access_token}`;
+                return api(originalRequest);
+
+            } catch (refreshError) {
+                console.error('❌ [AUTH] Token refresh failed, logging out');
+                await tokenStorage.removeTokens();
+                useAppStore.getState().logout();
+                return Promise.reject(refreshError);
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+export async function handleOAuthSuccess(access_token, refresh_token) {
+    await tokenStorage.saveTokens(access_token, refresh_token);
+    useAppStore.getState().setToken(access_token);
+}
+
+export default api;
