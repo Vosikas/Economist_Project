@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AOTH Academy - Επαλήθευση Email</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0; display: flex; justify-content: center; align-Items: center;
+            height: 100vh; background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #f1f5f9;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 20px;
+            border: 1px solid #334155; text-align: center; max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+        .icon-container {
+            width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            margin: 0 auto 20px; border: 2px solid #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        .icon { font-size: 40px; color: #10b981; }
+        h1 { margin: 0 0 10px; font-size: 28px; letter-spacing: 1px; }
+        p { color: #94a3b8; font-size: 16px; line-height: 1.5; margin-bottom: 30px; }
+        .btn {
+            background: linear-gradient(90deg, #10b981, #059669); color: white;
+            padding: 12px 25px; border-radius: 10px; text-decoration: none;
+            font-weight: bold; font-size: 16px; transition: transform 0.2s;
+            display: inline-block; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .btn:hover { transform: scale(1.05); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-container">
+            <i class="fas fa-check-circle icon"></i>
+        </div>
+        <h1>Επιτυχία!</h1>
+        <p>Το email σου επαληθεύτηκε επιτυχώς. Η θωράκιση του λογαριασμού σου στην <b>AOTH Academy</b> ολοκληρώθηκε.</p>
+        <a href="#" class="btn" onclick="window.close();">Επιστροφή στην Εφαρμογή</a>
+    </div>
+</body>
+</html>
