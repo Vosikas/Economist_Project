@@ -1,5 +1,5 @@
 async def send_verification_email(email: str, token: str):
-    verification_link = f"https://economist-api.onrender.com/verify?token={token}"
+    verification_link = f"https://economist-project.onrender.com/verify?token={token}"
     
     print("\n" + "="*50)
     print(f"🚀 [MOCK EMAIL - VERIFICATION] Προσομοίωση αποστολής στο: {email}")
@@ -10,7 +10,7 @@ async def send_verification_email(email: str, token: str):
     return True
 
 async def send_reset_password(email: str, token: str):
-    reset_link = f"https://economist-api.onrender.com/reset-password?token={token}"
+    reset_link = f"https://economist-project.onrender.com/reset-password?token={token}"
     
     print("\n" + "="*50)
     print(f"🚀 [MOCK EMAIL - RESET PASS] Προσομοίωση αποστολής στο: {email}")
