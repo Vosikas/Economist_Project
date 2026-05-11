@@ -11,9 +11,8 @@ import tokenStorage from '../services/tokenstorage';
 // 👉 ΝΕΟ: Κάνουμε import το Notification Service
 import { registerForPushNotificationsAsync } from '../services/notificationServices';
 
-// 👉 RevenueCat: imported here so the SDK is initialised the moment a valid
-//    session is confirmed (token + user ID are both available).
-import { initializeRevenueCat } from '../services/revenueCat';
+// 👉 RevenueCat: imported here so the SDK is linked to the authenticated user
+import { logInRevenueCat } from '../services/revenueCat';
 
 import GamifiedLoginScreen from '../screens/loginScreen';
 import GamifiedSignupScreen from '../screens/signupScreen';
@@ -255,25 +254,12 @@ export default function AuthWrapper() {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const [splashFinished, setSplashFinished] = useState(false);
 
-    // ── RevenueCat initialisation ────────────────────────────────────────────
-    // WHY reactive instead of one-shot inside initializeSession?
-    //
-    // The one-shot pattern (reading store after fetchDashboardData()) only covers
-    // the "returning user" path. It completely misses the fresh-login path where
-    // user.id is set by a later fetchDashboardData() call triggered by the login
-    // screen — at that point AuthWrapper's effect has already run and won't re-run.
-    //
-    // A reactive effect on `user` fires on EVERY transition from null → populated,
-    // which is exactly when user.id first becomes available regardless of entry path:
-    //   Path A: boot with saved token  → fetchDashboardData sets user → effect fires
-    //   Path B: fresh login            → fetchDashboardData sets user → effect fires
-    //   Path C: OAuth callback         → fetchDashboardData sets user → effect fires
-    //
-    // String(user.id) coercion is safe — UUID objects and strings both convert correctly.
+    // ── RevenueCat Login ────────────────────────────────────────────
+    // Link the RevenueCat SDK instance to the authenticated backend user ID
     useEffect(() => {
-        if (!user?.id) return; // Not yet authenticated — nothing to configure
-        initializeRevenueCat(String(user.id)).catch((e) =>
-            console.warn('[RC] Initialisation failed:', e)
+        if (!user?.id) return; // Not yet authenticated
+        logInRevenueCat(String(user.id)).catch((e) =>
+            console.warn('[RC] Login failed:', e)
         );
     }, [user?.id]); // Dep on user.id specifically — avoids re-running on profile updates
 

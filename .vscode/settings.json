@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./BACKEND"
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

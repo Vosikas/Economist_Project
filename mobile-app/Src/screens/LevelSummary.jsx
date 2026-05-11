@@ -6,6 +6,9 @@ import { FontAwesome5 as Icon } from '@expo/vector-icons';
 
 import BadgeUnlockCelebration from '../components/BadgeUnlockCelebration';
 import { CustomAlert } from '../components/CustomAlert';
+import SmartBannerAd from '../components/SmartBannerAd';
+import { useRewardedAd, TestIds } from 'react-native-google-mobile-ads';
+import useAppStore from '../store/useAppStore';
 
 
 export default function LevelSummaryScreen({ route, navigation }) {
@@ -23,6 +26,26 @@ export default function LevelSummaryScreen({ route, navigation }) {
     
     // ─── Gamification: Multiplier State ───
     const [isDoubled, setIsDoubled] = useState(false);
+    const isPremium = useAppStore((state) => state.user?.is_premium);
+
+    // ─── Rewarded Ad Setup ───
+    const { isLoaded, isClosed, load, show, isEarnedReward } = useRewardedAd(TestIds.REWARDED, {
+        requestNonPersonalizedAdsOnly: true,
+    });
+
+    useEffect(() => {
+        // Preload the rewarded ad if the user is not premium
+        if (!isPremium) {
+            load();
+        }
+    }, [load, isPremium, isClosed]);
+
+    useEffect(() => {
+        if (isEarnedReward) {
+            // API call to backend would go here
+            setIsDoubled(true);
+        }
+    }, [isEarnedReward]);
 
     useEffect(() => {
         // Ελέγχουμε αν μας ήρθαν ΑΛΗΘΙΝΑ badges από το API
@@ -36,17 +59,24 @@ export default function LevelSummaryScreen({ route, navigation }) {
 
     // ─── Ad Handler ───
     const handleWatchAd = () => {
-        CustomAlert.alert(
-            "Προσεχώς! 📺", 
-            "Το σύστημα διαφημίσεων δεν είναι ακόμα έτοιμο.", 
-            [{ 
-                text: "ΟΚ (Δωρεάν Διπλασιασμός!)", 
-                onPress: () => {
-                    // Εδώ μελλοντικά θα στέλνουμε API call στο backend για να δώσει το x2 XP
-                    setIsDoubled(true);
-                } 
-            }]
-        );
+        if (isPremium) {
+            // Premium users get it for free immediately
+            setIsDoubled(true);
+            return;
+        }
+
+        if (isLoaded) {
+            show();
+        } else {
+            CustomAlert.alert(
+                "Διαφήμιση μη διαθέσιμη", 
+                "Δεν βρέθηκε διαφήμιση αυτή τη στιγμή. Το διπλασιάζουμε δωρεάν!", 
+                [{ 
+                    text: "Τέλεια!", 
+                    onPress: () => setIsDoubled(true) 
+                }]
+            );
+        }
     };
 
     const displayXp = isDoubled ? (xpGained || 0) * 2 : (xpGained || 0);
@@ -127,6 +157,8 @@ export default function LevelSummaryScreen({ route, navigation }) {
                 onClose={() => setShowBadge(false)} 
             />
 
+            {/* ─── Smart Banner Ad at the Bottom ─── */}
+            <SmartBannerAd />
         </SafeAreaView>
     );
 }

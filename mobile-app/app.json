@@ -2,7 +2,7 @@
   "expo": {
     "name": "20_E",
     "slug": "20_e",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobileapp",
@@ -34,16 +34,15 @@
       "expo-secure-store",
       "expo-apple-authentication",
       "@react-native-google-signin/google-signin",
+    
+      "expo-web-browser",
       [
-        "expo-splash-screen",
+        "react-native-google-mobile-ads",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

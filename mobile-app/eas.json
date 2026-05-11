@@ -6,13 +6,37 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL":"https://economist-project.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB": "992969159279-u896l0gapvf0kv8uraqoi144aec2eds8.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS": "xxx.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID": "992969159279-7jb89sj7kmkp7gid0d2cgqdsll67n541.apps.googleusercontent.com",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "goog_CbcLTAzZFKuAPhqAtaiswrPhonQ",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_dummy_key_for_now_until_launch"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://economist-project.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB": "992969159279-u896l0gapvf0kv8uraqoi144aec2eds8.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS": "xxx.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID": "992969159279-7jb89sj7kmkp7gid0d2cgqdsll67n541.apps.googleusercontent.com",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "goog_CbcLTAzZFKuAPhqAtaiswrPhonQ",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_dummy_key_for_now_until_launch"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://economist-project.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB": "992969159279-u896l0gapvf0kv8uraqoi144aec2eds8.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS": "xxx.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID": "992969159279-7jb89sj7kmkp7gid0d2cgqdsll67n541.apps.googleusercontent.com",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "goog_CbcLTAzZFKuAPhqAtaiswrPhonQ",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_dummy_key_for_now_until_launch"
+      }
     }
   },
   "submit": {
