@@ -1,7 +1,7 @@
 import json
 import os
-from db import SessionLocal, engine, Base
-from models import Chapter, Level, Question, User, UserProgress, UserMistake
+from database.db import SessionLocal, engine, Base
+from database.models import Chapter, Level, Question, User, UserProgress, UserMistake
 
 def seed_database():
     # 1. Δυναμικός εντοπισμός του αρχείου lessons.json
