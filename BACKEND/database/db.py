@@ -3,29 +3,23 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 
-# Φόρτωση μεταβλητών περιβάλλοντος
+# Φόρτωση των μεταβλητών από το .env αρχείο
 load_dotenv()
 
-# Πρώτα ψάχνουμε αν υπάρχει έτοιμο DATABASE_URL (π.χ. στο Render)
+# Λήψη του URL από το περιβάλλον
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Αν δεν υπάρχει έτοιμο (π.χ. όταν τρέχεις τοπικά στο PC σου), το συνθέτουμε:
+# Έλεγχος αν το URL υπάρχει, αλλιώς σταματάμε με μήνυμα σφάλματος
 if not DATABASE_URL:
-    DB_USER = os.getenv("DB_USER")
-    DB_PASSWORD = os.getenv("DB_PASSWORD")
-    DB_HOST = os.getenv("DB_HOST")
-    DB_PORT = os.getenv("DB_PORT")
-    DB_NAME = os.getenv("DB_NAME")
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    raise ValueError(
+        "\n❌ ΣΦΑΛΜΑ: Η μεταβλητή DATABASE_URL δεν βρέθηκε!\n"
+        "Σιγουρέψου ότι υπάρχει αρχείο .env στον φάκελο BACKEND "
+        "και ότι περιέχει τη σωστή διαδρομή."
+    )
 
-# Δημιουργία του Engine
-engine = create_engine(DATABASE_URL)
-
-# Εργοστάσιο παραγωγής Sessions
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Η βάση για τα ORM Models
-Base = declarative_base()
+# Διόρθωση για το Render/SQLAlchemy (πρέπει να ξεκινάει με postgresql://)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Δημιουργία του Engine
 engine = create_engine(DATABASE_URL)
@@ -37,20 +31,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def create_tables():
-    """
-    Αυτή η συνάρτηση "χτίζει" τους πίνακες στη βάση δεδομένων.
-    Το import των models γίνεται ΕΔΩ μέσα για να αποφύγουμε το Circular Import Error,
-    καθώς τα models κάνουν import το Base από αυτό εδώ το αρχείο.
-    """
     from database import models 
-    print("🔨 SQLAlchemy: Δημιουργία πινάκων (αν δεν υπάρχουν)...")
+    print("🔨 SQLAlchemy: Δημιουργία πινάκων στη βάση...")
     Base.metadata.create_all(bind=engine)
     print("✅ SQLAlchemy: Η δομή της βάσης είναι έτοιμη.")
 
 def get_db():
-    """
-    FastAPI Dependency: Παρέχει ένα DB Session για κάθε request και το κλείνει αυτόματα στο τέλος.
-    """
     db = SessionLocal()
     try:
         yield db

@@ -31,7 +31,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime, timezone
-from database.db import Base
+from db import Base
 
 
 def generate_uuid() -> str:
