@@ -55,10 +55,13 @@ GRANT_EVENTS = {
 # Events that mean the entitlement has ended or been invalidated.
 # Note: CANCELLATION is intentionally absent — the subscription remains valid
 # until EXPIRATION fires (see module docstring).
+# Note: SUBSCRIBER_ALIAS removed — it is a merge/alias event, NOT a revocation.
+#       It fired in the original code and would incorrectly set is_premium=False
+#       for users whose anonymous RC ID was aliased to their real account ID
+#       (a normal login flow event).
 REVOKE_EVENTS = {
     "EXPIRATION",
     "REFUND",
-    "SUBSCRIBER_ALIAS",
 }
 
 
@@ -155,6 +158,21 @@ def _process_event(
     """
     db: Session = SessionLocal()
     try:
+        # ── TRANSFER: revoke premium from the previous owner first ────────────
+        # TRANSFER fires when a subscription moves from one app_user_id to
+        # another (e.g. account switch). The payload contains a `transferred_from`
+        # list of IDs that are losing the entitlement. Without this block, the
+        # old account retains is_premium=True indefinitely.
+        if event_type == "TRANSFER":
+            transferred_from_ids = event.get("transferred_from", [])
+            for from_id in transferred_from_ids:
+                from_user = _find_user(db, from_id)
+                if from_user:
+                    _set_premium(db, from_user, False, "TRANSFER_revoke")
+                    logger.info(
+                        f"[Webhook] TRANSFER: revoked premium from app_user_id='{from_id}'"
+                    )
+
         user = _find_user(db, app_user_id)
         if not user:
             logger.warning(
@@ -167,6 +185,7 @@ def _process_event(
             _set_premium(db, user, True, event_type)
         elif event_type in REVOKE_EVENTS:
             _set_premium(db, user, False, event_type)
+
     except Exception:
         logger.exception(
             f"[Webhook] Unhandled error processing event_id={event_id} type={event_type}"
@@ -221,7 +240,9 @@ async def revenuecat_webhook(
         return {"received": True}
 
     if not app_user_id:
-        logger.warning(f"[Webhook] Event '{event_type}' (id={event_id}) has no app_user_id — skipping.")
+        logger.warning(
+            f"[Webhook] Event '{event_type}' (id={event_id}) has no app_user_id — skipping."
+        )
         return {"received": True}
 
     background_tasks.add_task(
