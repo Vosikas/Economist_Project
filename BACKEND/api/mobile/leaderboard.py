@@ -36,7 +36,7 @@ from schemas import LeaderboardUser
 
 router = APIRouter(tags=["Mobile — Leaderboard"])
 
-# ─── Cache Singleton ──────────────────────────────────────────────────────────
+# ─── Cache Singleton ────────────────────────────────________________──────────
 # Module-level: shared across all requests handled by this worker process.
 # maxsize=1: we only store one key ("top100") — no eviction logic needed.
 # ttl=60: result is considered stale after 60 seconds.
@@ -83,7 +83,14 @@ def get_leaderboard(db: Session = Depends(get_db)):
         if cached is not None:
             return cached  # Cache HIT — zero DB cost
 
-        # Cache MISS — query and store
-        top100 = db.query(User).order_by(User.total_xp.desc()).limit(100).all()
+    # Cache MISS — query users and serialize them into Pydantic models/dicts
+    # so we don't store detached SQLAlchemy instances in the cache.
+    users = db.query(User).order_by(User.total_xp.desc()).limit(100).all()
+    
+    # Μετατροπή σε λίστα Pydantic models (ή dictionaries) για ασφάλεια μνήμης
+    top100 = [LeaderboardUser.model_validate(u) for u in users]
+
+    with _leaderboard_lock:
         _leaderboard_cache["top100"] = top100
-        return top100
+
+    return top100

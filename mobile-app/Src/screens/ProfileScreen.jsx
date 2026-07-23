@@ -53,7 +53,7 @@ export default function ProfileScreen({ navigation }) {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            {/* Top Right Settings Icon (Προαιρετικό, αλλά βολικό) */}
+            {/* Top Right Settings Icon */}
             <View style={styles.topActions}>
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.settingsBtn}>
                     <Icon name="cog" size={22} color="#64748b" />
@@ -97,9 +97,13 @@ export default function ProfileScreen({ navigation }) {
                     </View>
                 </Animated.View>
 
-                {/* PREMIUM BANNER */}
+                {/* PREMIUM BANNER - Προσθήκη shortcut προς το Paywall */}
                 <Animated.View entering={FadeInDown.delay(300).duration(500)}>
-                    <TouchableOpacity activeOpacity={0.8} style={styles.premiumContainer}>
+                    <TouchableOpacity 
+                        activeOpacity={0.8} 
+                        style={styles.premiumContainer}
+                        onPress={() => navigation.navigate('PremiumPaywall')} // ← Εδώ γίνεται το shortcut στο PaywallScreen σου
+                    >
                         <LinearGradient colors={['#8b5cf6', '#d946ef']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={styles.premiumGradient}>
                             <View style={styles.premiumIconBg}><Icon name="crown" size={20} color="#fff" /></View>
                             <View style={styles.premiumTextContainer}>

@@ -88,7 +88,7 @@ export default function QuizScreen() {
     const [score, setScore] = useState(0);
     const [wrongQuestionIds, setWrongQuestionIds] = useState([]);
     
-    // ─── ΝΕΟ: Έλεγχος εμφάνισης του Modal Ασπίδων ───
+    // ─── Έλεγχος εμφάνισης του Modal Ασπίδων ───
     const [showShieldModal, setShowShieldModal] = useState(false);
 
     useEffect(() => {
@@ -154,13 +154,12 @@ export default function QuizScreen() {
             // 2. Αφαιρούμε 1 Ασπίδα (κλήση στο Store)
             decreaseShield();
             
-            // 3. Ελέγχουμε αν ξεμείναμε! (Προσοχή: το state 'shields' αργεί λίγο, γι' αυτό τσεκάρουμε αν ήταν <= 1)
+            // 3. Ελέγχουμε αν ξεμείναμε!
             if (shields <= 1) {
-                // Περιμένουμε λίγο να δει το λάθος του και πετάμε το Modal
                 setTimeout(() => {
                     setShowShieldModal(true);
                 }, 1000); 
-                return; // Δεν προχωράμε στην επόμενη ερώτηση
+                return;
             }
         }
 
@@ -184,6 +183,18 @@ export default function QuizScreen() {
 
             const result = await completeLevel(levelId, finalScore, finalWrongIds, questions.length);
             
+            // 👉 ΑΚΑΡΙΑΙΑ ΕΝΗΜΕΡΩΣΗ ΤΟΥ ZUSTAND STORE (XP & Coins)
+            if (result) {
+                useAppStore.setState((state) => ({
+                    user: {
+                        ...state.user,
+                        total_xp: result.new_total_xp ?? state.user?.total_xp,
+                        coins: result.new_total_coins ?? state.user?.coins,
+                        streak_days: result.streak_days ?? state.user?.streak_days,
+                    }
+                }));
+            }
+
             const { chapters } = useAppStore.getState();
             let resolvedChapterId = null;
             let nextLevelId = null;
@@ -219,16 +230,13 @@ export default function QuizScreen() {
 
     // ─── Modal Handlers ───
     const handleWatchAd = () => {
-        // ΕΔΩ ΘΑ ΜΠΕΙ Η ΛΟΓΙΚΗ ΓΙΑ ΤΙΣ ΔΙΑΦΗΜΙΣΕΙΣ (π.χ. react-native-google-mobile-ads)
         CustomAlert.alert("Προσεχώς! 📺", "Το σύστημα διαφημίσεων δεν έχει ενεργοποιηθεί ακόμα.", [
             { 
                 text: "ΟΚ", 
                 onPress: () => {
-                    // ΠΡΟΣΩΡΙΝΑ: Του δίνουμε μια ασπίδα τσάμπα για να δοκιμάζεις το app
                     useAppStore.getState().addShields(1); 
                     setShowShieldModal(false);
                     
-                    // Αφού πήρε την ασπίδα, τον προχωράμε!
                     if (currentQuestionIndex < questions.length - 1) {
                         setCurrentQuestionIndex(prev => prev + 1);
                         setIsAnswered(false);
@@ -252,8 +260,6 @@ export default function QuizScreen() {
             {
                 text: "Συνέχεια",
                 onPress: () => {
-                    // Εδώ ιδανικά πρέπει να κάνεις και ένα API Call στο backend για να αφαιρέσεις τα coins.
-                    // Προς το παρόν ενημερώνουμε το Store:
                     useAppStore.getState().addShields(5); 
                     setShowShieldModal(false);
                     
@@ -272,7 +278,6 @@ export default function QuizScreen() {
         setShowShieldModal(false);
         navigation.goBack();
     };
-
 
     const renderQuestionComponent = (currentQuestion) => {
         switch (currentQuestion.type) {
@@ -378,8 +383,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center', 
         alignItems: 'center' 
     },
-    
-    // --- HUD Header ---
     hudHeader: { 
         flexDirection: 'row', 
         alignItems: 'center', 
@@ -413,7 +416,7 @@ const styles = StyleSheet.create({
     scorePill: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(6, 182, 212, 0.1)', // Αλλάξαμε σε Cyan
+        backgroundColor: 'rgba(6, 182, 212, 0.1)',
         paddingVertical: 6,
         paddingHorizontal: 14,
         borderRadius: 20,
@@ -425,8 +428,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '800',
     },
-
-    // --- Thin Neon Progress Bar ---
     progressBarBg: { 
         height: 6, 
         backgroundColor: 'rgba(255,255,255,0.05)', 
@@ -444,7 +445,6 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 5,
     },
-
     contentContainer: {
         flex: 1,
     },
@@ -454,8 +454,6 @@ const styles = StyleSheet.create({
         marginTop: 50,
         fontSize: 18,
     },
-
-    // --- Minimal Explanation Toast ---
     explanationToast: { 
         position: 'absolute', 
         bottom: 20, 
@@ -497,7 +495,7 @@ const styles = StyleSheet.create({
 const modalStyles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(15, 23, 42, 0.9)', // Σκούρο μπλε ημιδιάφανο
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
@@ -509,7 +507,7 @@ const modalStyles = StyleSheet.create({
         padding: 30,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(239, 68, 68, 0.3)', // Κόκκινο border
+        borderColor: 'rgba(239, 68, 68, 0.3)',
         elevation: 20,
         shadowColor: COLOR_ERROR,
         shadowOffset: { width: 0, height: 10 },
