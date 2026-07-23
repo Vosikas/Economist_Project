@@ -1,7 +1,7 @@
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { Platform } from 'react-native';
 
-export const PREMIUM_ENTITLEMENT_ID = 'premium';
+export const PREMIUM_ENTITLEMENT_ID = 'E20 Pro';
 
 // BULLETPROOF GUARD: Ο δικός μας διακόπτης
 let hasInitializedLocal = false;
@@ -170,4 +170,27 @@ export async function restorePurchases() {
         console.error('[RC] Restore failed:', error);
         return { success: false, isPremium: false, error: error.message };
     }
+    export async function syncUserPremiumStatus() {
+    try {
+        console.log('[App Sync] 🔄 Syncing user premium status from backend...');
+        
+        // Χτυπάμε το /dashboard endpoint που επιστρέφει το user object με το ενημερωμένο is_premium
+        const response = await api.get('/dashboard');
+        
+        if (response.data && response.data.user) {
+            const isPremium = response.data.user.is_premium;
+            
+            // Ενημερώνουμε ακαριαία το Zustand store
+            const { default: useAppStore } = require('../store/useAppStore');
+            useAppStore.getState().setIsPremium(isPremium);
+            
+            console.log('[App Sync] ✅ Premium status synced successfully. isPremium:', isPremium);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('[App Sync] ❌ Failed to sync user status:', error);
+        return false;
+    }
+}
 }

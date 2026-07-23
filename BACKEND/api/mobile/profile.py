@@ -75,3 +75,4 @@ def upgrade_user_to_premium(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Πρόβλημα κατά την αναβάθμιση.")
+
